@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8">
+<style>
+@font-face { font-family: 'Cinzel Decorative'; src: url('../game/fonts/CinzelDecorative-Black.ttf'); font-weight: 900; }
+@font-face { font-family: 'Nunito'; src: url('../game/fonts/Nunito.ttf'); font-weight: 200 1000; }
+html, body { margin: 0; width: 1200px; height: 630px; overflow: hidden; background: #1b1433; }
+.bg { position: absolute; inset: 0; background: url('../game/assets/bg/title.jpg') center 62% / cover; filter: brightness(0.8); }
+.shade { position: absolute; inset: 0; background: linear-gradient(90deg, rgba(15,8,30,0.88) 0%, rgba(15,8,30,0.55) 48%, rgba(15,8,30,0) 75%); }
+.hades { position: absolute; right: -150px; bottom: -150px; width: 820px; }
+.pom { position: absolute; right: 230px; top: 50px; width: 150px; transform: rotate(-18deg); filter: drop-shadow(0 0 30px rgba(255,210,90,0.8)); }
+.text { position: absolute; left: 70px; top: 120px; width: 620px; }
+h1 { margin: 0; font: 900 84px/0.98 'Cinzel Decorative'; color: #ffd25a; -webkit-text-stroke: 4px #2a0f1e; paint-order: stroke fill; text-shadow: 0 6px 18px rgba(0,0,0,0.6); }
+h1 span { color: #ff6a4a; font-size: 100px; }
+h1 b { color: #fff2c0; }
+p { margin: 26px 0 0; font: 900 30px 'Nunito'; color: #fff2c0; letter-spacing: 3px; text-shadow: 0 3px 8px #000; }
+</style></head>
+<body>
+<div class="bg"></div><div class="shade"></div>
+<img class="hades" src="../game/assets/sprites/hades-3.png">
+<img class="pom" src="../game/assets/sprites/pom-gold.png">
+<div class="text"><h1>Pomegranate<br><span>Panic</span> <b>2</b></h1><p>SEEDS OF THE UNDERWORLD</p></div>
+</body></html>

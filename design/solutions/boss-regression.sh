@@ -1,0 +1,2 @@
+# usage: bosstest.sh SEED -> runs a new run, starts boss, fast-forwards, prints summary
+playwright-cli -s=desktop eval "(() => { const G = window.__game; G.newRun($1); G.fastForward(3); G.startBoss(); const s = G.fastForward(${2:-60}); return JSON.stringify({screen: s.screen, mode: s.mode, hp: s.boss && s.boss.hp, phase: s.boss && s.boss.phase, bless: s.boss && s.boss.blessing, gaps: s.boss && s.boss.gaps.map(g => g.stage + (g.survived ? '+' : '-')).join(' '), score: s.score, hits: s.stats.hadesHits}); })()" 2>&1 | sed -n 2p
