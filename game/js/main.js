@@ -407,7 +407,22 @@ function updateMusicRate(w) {
 
 // ---------- drawing ----------
 
+// Small links to synapticnoise.com and the GitHub repo, on the title screen only.
+const titleLinks = [...document.querySelectorAll('.title-link')];
+for (const a of titleLinks) {
+  for (const ev of ['pointerdown', 'pointerup', 'click', 'touchstart', 'touchend']) a.addEventListener(ev, e => e.stopPropagation());
+  a.addEventListener('keydown', e => { if (e.key === 'Enter') e.stopPropagation(); });
+}
+let linksShown = false;
+function syncTitleLinks() {
+  const show = g.screen === 'title' && !g.rotateNote;
+  if (show === linksShown) return;
+  linksShown = show;
+  for (const a of titleLinks) { a.hidden = !show; if (!show && document.activeElement === a) a.blur(); }
+}
+
 function draw() {
+  syncTitleLinks();
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   const s = view.scale * view.dpr;

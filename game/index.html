@@ -43,12 +43,33 @@
     position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
     color: #ffd25a; font: 700 20px Nunito, system-ui, sans-serif; letter-spacing: 1px;
   }
+  .title-link {
+    position: fixed; z-index: 2; bottom: calc(env(safe-area-inset-bottom, 0px) + 10px); padding: 6px 4px;
+    font: 800 14px Nunito, system-ui, sans-serif; letter-spacing: 0.3px; color: #fff2c0; opacity: 0.7;
+    text-decoration: none; text-shadow: 0 1px 3px rgba(10,6,20,0.9), 0 0 2px rgba(10,6,20,0.8);
+    -webkit-user-select: none; user-select: none; touch-action: manipulation;
+  }
+  .title-link[hidden] { display: none; }
+  .title-link:hover, .title-link:focus-visible { opacity: 1; text-decoration: underline; }
+  #link-site { left: calc(env(safe-area-inset-left, 0px) + 12px); }
+  #link-gh { right: calc(env(safe-area-inset-right, 0px) + 12px); }
+  /* Phones: smaller, and tucked a little into the home-bar area so they stay clear of the title buttons. */
+  @media (pointer: coarse), (max-width: 600px) {
+    .title-link { font-size: 11px; padding: 4px 3px; bottom: calc(env(safe-area-inset-bottom, 0px) * 0.4 + 6px); }
+  }
+  @media (max-width: 380px) {
+    .title-link { font-size: 10px; }
+    #link-site { left: calc(env(safe-area-inset-left, 0px) + 8px); }
+    #link-gh { right: calc(env(safe-area-inset-right, 0px) + 8px); }
+  }
 </style>
 </head>
 <body>
 <div id="safe"></div>
 <div id="loading">Loading…</div>
 <canvas id="game" aria-label="Pomegranate Panic 2 game"></canvas>
+<a class="title-link" id="link-site" href="https://synapticnoise.com/" hidden>synapticnoise.com</a>
+<a class="title-link" id="link-gh" href="https://github.com/zeveck/pomegranatepanic2" target="_blank" rel="noopener" title="Pomegranate Panic 2 on GitHub: how it was made" aria-label="Pomegranate Panic 2 on GitHub: how it was made" hidden>GitHub</a>
 <script type="module" src="js/main.js"></script>
 <script>
   const local = ['localhost', '127.0.0.1'].includes(location.hostname);
