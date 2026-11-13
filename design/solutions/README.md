@@ -17,5 +17,8 @@ Serve `game/` on 127.0.0.1:8123, open it with playwright-cli as session
   Result (seeds 11–20, before seed timing was tightened): reached Hades in
   6/10 (between 200 s and 300 s, the autopilot doesn't steer to seeds) and
   won every boss fight it reached; never died in the descent.
+- **Re-run 2026-11-13** (adding "Report a bug"): boss seeds 1–12: 10 wins,
+  2 losses (7, 11). Full runs seeds 11–20 for 300 s: 9 reached Hades, none
+  died in the descent; results identical to the code before the change.
 - **Touch**: phone session (iPhone 15) taps place ramps at the finger
   (`.gamegen` play-test log), keyboard initials entry saves to localStorage.

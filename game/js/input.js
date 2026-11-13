@@ -23,8 +23,14 @@ export function createInput(canvas, view) {
     };
   };
   const first = () => { if (inp.onFirstInput) inp.onFirstInput(); };
+  // While the bug report form is open, the player is typing: the game ignores
+  // every key and touch (and doesn't preventDefault them either).
+  const report = document.getElementById('report');
+  const reportOpen = e => !!report && (e.composedPath?.().includes(report) || document.activeElement === report);
+  inp.reportOpen = () => !!report && document.activeElement === report;
 
   canvas.addEventListener('pointerdown', e => {
+    if (reportOpen(e)) return;
     e.preventDefault();
     first();
     const p = toLogical(e);
@@ -40,6 +46,7 @@ export function createInput(canvas, view) {
   });
 
   canvas.addEventListener('pointermove', e => {
+    if (reportOpen(e)) return;
     const p = toLogical(e);
     const ptr = inp.pointers.get(e.pointerId);
     if (e.pointerType === 'mouse') { inp.aim = { x: p.x, y: p.y }; inp.isTouch = false; }
@@ -50,6 +57,7 @@ export function createInput(canvas, view) {
   });
 
   const up = (e, cancelled) => {
+    if (reportOpen(e) && !inp.pointers.has(e.pointerId)) return;
     first(); // touch gestures only count on release on some browsers
     const ptr = inp.pointers.get(e.pointerId);
     if (!ptr) return;
@@ -69,13 +77,14 @@ export function createInput(canvas, view) {
   canvas.addEventListener('pointerup', e => up(e, false));
   canvas.addEventListener('pointercancel', e => up(e, true));
   canvas.addEventListener('pointerleave', e => { if (e.pointerType === 'mouse') inp.aim = null; });
-  canvas.addEventListener('contextmenu', e => e.preventDefault());
+  canvas.addEventListener('contextmenu', e => { if (!reportOpen(e)) e.preventDefault(); });
   window.addEventListener('touchend', first, { passive: true });
   window.addEventListener('click', first);
 
   const GAME_KEYS = ['Escape', 'p', 'P', 'm', 'M', 'Enter', ' ', 'Backspace', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'];
   window.addEventListener('keydown', e => {
     if (e.ctrlKey || e.metaKey || e.altKey) return;
+    if (reportOpen(e)) return;
     first();
     if (GAME_KEYS.includes(e.key) || /^[a-zA-Z]$/.test(e.key)) e.preventDefault();
     if (!e.repeat) inp.keys.push(e.key);

@@ -25,7 +25,39 @@ const g = {
   helpPage: 0, entry: null, lastRun: null, newBest: false,
   autopilot: false, seedParam: null, fireFlare: 0, firstRun: !save.get().seenHelp,
   hint: 0, flash: 0, victoryT: 0, rotateNote: false,
+  focus: null, // id of the menu button picked with the arrow keys
 };
+
+// ---------- "Report a bug" (gh-feedback) ----------
+
+const fb = document.getElementById('report');
+const FEEDBACK_KEY = 'pomegranate-panic-2-feedback';
+const query = new URLSearchParams(location.search);
+if (query.has('feedback')) {
+  try {
+    if (query.get('feedback') === 'off') localStorage.removeItem(FEEDBACK_KEY);
+    else localStorage.setItem(FEEDBACK_KEY, '1');
+  } catch { /* storage blocked */ }
+}
+const FEEDBACK = 'on';
+const showReport = () => !!fb?.getAttribute('repo') &&
+  (FEEDBACK === 'on' || (() => { try { return localStorage.getItem(FEEDBACK_KEY) === '1'; } catch { return false; } })());
+
+// The picture sent with a report is the game as the player last saw it,
+// taken as it pauses (before the pause menu is drawn over it).
+let pauseShot = null;
+function snapshot() { pauseShot = new Promise(r => canvas.toBlob(r, 'image/png')); }
+const reportErrors = [];
+const keepError = m => { reportErrors.push(String(m).replace(/\s+/g, ' ').slice(0, 200)); reportErrors.splice(0, reportErrors.length - 5); };
+addEventListener('error', e => keepError(e.message));
+addEventListener('unhandledrejection', e => keepError(e.reason?.message ?? e.reason));
+const flat = v => String(v).replace(/\s+/g, ' ');
+
+function openReport() {
+  if (!fb) return;
+  g.focus = null;
+  fb.open();
+}
 
 // ---------- sizing ----------
 
@@ -57,8 +89,10 @@ window.addEventListener('orientationchange', () => setTimeout(resize, 120));
 // ---------- screens ----------
 
 function go(screen) {
+  if (screen !== 'pause') pauseShot = null;
   g.screen = screen;
   g.screenT = 0;
+  g.focus = null;
   if (!midRun()) resize();
   if (screen === 'title' || screen === 'scores' || screen === 'help') audio.music('title');
   if (screen === 'title') audio.ambient(false);
@@ -86,11 +120,14 @@ function startPlay() {
 
 function pause() {
   if (g.screen !== 'play') return;
+  snapshot(); // the canvas still shows the last game frame
   go('pause');
   audio.duck(true);
 }
 function resume() {
   if (g.screen !== 'pause') return;
+  pauseShot = null;
+  g.focus = null;
   g.screen = 'play';
   audio.duck(false);
 }
@@ -296,7 +333,30 @@ function nextHelp() {
   if (g.helpPage >= 3) { g.helpPage = 0; go(g.helpFrom || 'title'); }
 }
 
+// Arrow keys move between a menu's buttons (title and pause); Enter or Space
+// presses the one picked. With none picked, Enter and Space work as before.
+const NAV_SCREENS = ['title', 'pause'];
+function menuNav(k) {
+  if (!NAV_SCREENS.includes(g.screen) || g.rotateNote) return false;
+  const list = g.buttons.filter(b => b.label);
+  if (!list.length) return false;
+  if (k === 'ArrowDown' || k === 'ArrowUp') {
+    const i = list.findIndex(b => b.id === g.focus);
+    const d = k === 'ArrowDown' ? 1 : -1;
+    const next = i < 0 ? (d > 0 ? 0 : list.length - 1) : (i + d + list.length) % list.length;
+    g.focus = list[next].id;
+    audio.play('click', { vol: 0.3, rate: 1.4 });
+    return true;
+  }
+  if ((k === 'Enter' || k === ' ') && g.focus) {
+    const b = list.find(x => x.id === g.focus);
+    if (b) { audio.play('click', { vol: 0.5 }); b.action(); return true; }
+  }
+  return false;
+}
+
 function onKey(k) {
+  if (menuNav(k)) return;
   if (k === 'm' || k === 'M') {
     if (g.entry && !g.entry.saved && !g.entry.skipped && (g.screen === 'over' || g.screen === 'victory')) { typeLetter('M'); return; }
     const off = !(audio.musicMuted && audio.sfxMuted);
@@ -461,7 +521,13 @@ function drawButtons() {
   const hov = input.aim && !input.isTouch ? buttonAt(input.aim.x, input.aim.y) : null;
   for (const b of g.buttons) {
     if (g.downOnButton !== b.id) b.pressed = false;
-    button(ctx, b, g.t, hov === b);
+    button(ctx, b, g.t, hov === b || g.focus === b.id);
+    if (g.focus === b.id) {
+      ctx.save();
+      ctx.strokeStyle = '#fff2c0'; ctx.lineWidth = 3; ctx.globalAlpha = 0.6 + 0.4 * Math.sin(g.t * 6);
+      R.roundRect(ctx, b.x - 6, b.y - 6, b.w + 12, b.h + 12, Math.min((b.h + 12) / 2, 28)); ctx.stroke();
+      ctx.restore();
+    }
   }
 }
 
@@ -486,11 +552,13 @@ function drawTitle() {
   // tumbling pom
   const pom = { x: C.W / 2, y: H * 0.47 + Math.sin(g.t * 1.6) * 16, r: C.POM_R * 2.2, rot: g.t * 1.8, squash: 0 };
   R.drawPom(ctx, img, pom, 0, false, g.t);
-  const by = H - 330;
+  const report = showReport();
+  const by = H - (report ? 400 : 330);
   const pulse = 0.7 + 0.3 * Math.sin(g.t * 4);
   g.buttons.push({ id: 'play', x: C.W / 2 - 150, y: by, w: 300, h: 84, label: 'PLAY', size: 40, action: startFromTitle });
   g.buttons.push({ id: 'scores', x: C.W / 2 - 150, y: by + 102, w: 300, h: 64, label: 'High Scores', style: 'ghost', action: () => go('scores') });
   g.buttons.push({ id: 'help', x: C.W / 2 - 150, y: by + 180, w: 300, h: 64, label: 'How to Play', style: 'ghost', action: () => { g.helpFrom = 'title'; g.helpPage = 0; go('help'); } });
+  if (report) g.buttons.push({ id: 'report', x: C.W / 2 - 120, y: by + 258, w: 240, h: 56, label: 'Report a bug', size: 21, style: 'ghost', action: openReport });
   muteButtons(20);
   drawButtons();
   R.text(ctx, input.isTouch ? 'Tap anywhere to play' : 'Click or press Enter to play', C.W / 2, H - 34, { size: 20, color: '#fff2c0', alpha: pulse });
@@ -526,6 +594,7 @@ function drawHelp() {
       ctx.fillStyle = `rgba(255,230,120,${a})`; R.roundRect(ctx, cx - 30, iy - 26, 60, 116, 20); ctx.fill(); }
   }
   lines.forEach((l, i) => R.text(ctx, l, cx, 470 + i * 40, { size: 25, color: '#fff6d8', weight: 700 }));
+  if (!input.isTouch && showReport()) R.text(ctx, 'Ctrl+Shift+F: report a bug', cx, H - 240, { size: 18, color: '#bfaee0', weight: 800 });
   for (let i = 0; i < 3; i++) {
     ctx.fillStyle = i === page ? '#ffd25a' : 'rgba(255,255,255,0.3)';
     ctx.beginPath(); ctx.arc(cx - 30 + i * 30, H - 190, 8, 0, Math.PI * 2); ctx.fill();
@@ -693,12 +762,15 @@ function drawHud(w) {
 function drawPause() {
   const H = C.dims.H;
   ctx.fillStyle = 'rgba(10,6,20,0.6)'; ctx.fillRect(0, 0, C.W, H);
-  panel(ctx, 60, H / 2 - 260, C.W - 120, 500);
-  titleText(ctx, 'Paused', C.W / 2, H / 2 - 190, 44);
-  g.buttons.push({ id: 'resume', x: C.W / 2 - 140, y: H / 2 - 130, w: 280, h: 80, label: 'Resume', action: resume });
-  g.buttons.push({ id: 'restart', x: C.W / 2 - 140, y: H / 2 - 30, w: 280, h: 64, label: 'Restart', style: 'ghost', action: () => { audio.duck(false); startPlay(); } });
-  g.buttons.push({ id: 'quit', x: C.W / 2 - 140, y: H / 2 + 50, w: 280, h: 64, label: 'Quit to title', style: 'ghost', action: () => { audio.duck(false); go('title'); } });
-  muteButtons(H / 2 + 140, C.W / 2 - 72);
+  const report = showReport();
+  const top = H / 2 - (report ? 300 : 260);
+  panel(ctx, 60, top, C.W - 120, report ? 590 : 500);
+  titleText(ctx, 'Paused', C.W / 2, top + 70, 44);
+  g.buttons.push({ id: 'resume', x: C.W / 2 - 140, y: top + 130, w: 280, h: 80, label: 'Resume', action: resume });
+  g.buttons.push({ id: 'restart', x: C.W / 2 - 140, y: top + 230, w: 280, h: 64, label: 'Restart', style: 'ghost', action: () => { audio.duck(false); startPlay(); } });
+  g.buttons.push({ id: 'quit', x: C.W / 2 - 140, y: top + 310, w: 280, h: 64, label: 'Quit to title', style: 'ghost', action: () => { audio.duck(false); go('title'); } });
+  if (report) g.buttons.push({ id: 'report', x: C.W / 2 - 140, y: top + 390, w: 280, h: 64, label: 'Report a bug', style: 'ghost', action: openReport });
+  muteButtons(top + (report ? 480 : 400), C.W / 2 - 72);
   drawButtons();
 }
 
@@ -825,6 +897,35 @@ window.__game = {
   audioState: () => audio.state(),
   levels: () => 1,
 };
+
+// ---------- bug report details ----------
+
+if (fb) {
+  fb.getScreenshot = () => pauseShot ?? new Promise(r => canvas.toBlob(r, 'image/png'));
+  fb.getContext = () => {
+    const s = window.__game.state();
+    const b = s.boss;
+    return {
+      game: 'Pomegranate Panic 2',
+      address: location.origin + location.pathname,
+      updated: document.lastModified,
+      build: window.desktop ? `desktop app (${window.desktop.platform})` : 'web',
+      browser: navigator.userAgent,
+      screen: `${innerWidth}x${innerHeight} @${devicePixelRatio}x`,
+      input: input.isTouch ? 'touch' : 'mouse and keyboard',
+      state: flat(JSON.stringify({
+        screen: s.screen, score: s.score, time: s.t, speed: s.speed, seeds: s.seeds, mode: s.mode,
+        boss: b ? { stage: b.stage, hp: b.hp, phase: b.phase, blessing: b.blessing } : null,
+        pom: s.pom, ramps: s.ramps, death: s.deathCause,
+        sound: { music: !audio.musicMuted, sfx: !audio.sfxMuted },
+      })),
+      errors: reportErrors.join(' | ') || 'none',
+    };
+  };
+  if (window.desktop) fb.openLink = url => { window.open(url, '_blank'); return true; };
+}
+// Ctrl+Shift+F (index.html) calls this first: pause the usual way, with the snapshot.
+window.reportShortcut = () => { if (g.screen === 'play') pause(); };
 
 // ---------- boot ----------
 

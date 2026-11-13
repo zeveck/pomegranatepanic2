@@ -51,6 +51,13 @@
   }
   .title-link[hidden] { display: none; }
   .title-link:hover, .title-link:focus-visible { opacity: 1; text-decoration: underline; }
+  /* The bug report form: the page's no-select and no-touch styles must not reach it. */
+  gh-feedback { -webkit-user-select: text; user-select: text; touch-action: auto; }
+  /* ...dressed like the game's own purple-and-gold panels. */
+  gh-feedback {
+    --gh-feedback-bg: #251a45; --gh-feedback-text: #fff6d8; --gh-feedback-border: #8a72c4;
+    --gh-feedback-input-bg: #170f2c;
+  }
   #link-site { left: calc(env(safe-area-inset-left, 0px) + 12px); }
   #link-gh { right: calc(env(safe-area-inset-right, 0px) + 12px); }
   /* Phones: smaller, and tucked a little into the home-bar area so they stay clear of the title buttons. */
@@ -70,6 +77,19 @@
 <canvas id="game" aria-label="Pomegranate Panic 2 game"></canvas>
 <a class="title-link" id="link-site" href="https://synapticnoise.com/" hidden>synapticnoise.com</a>
 <a class="title-link" id="link-gh" href="https://github.com/zeveck/pomegranatepanic2" target="_blank" rel="noopener" title="Pomegranate Panic 2 on GitHub: how it was made" aria-label="Pomegranate Panic 2 on GitHub: how it was made" hidden>GitHub</a>
+<script>
+  // Ctrl+Shift+F opens the bug report from anywhere, even if the game is stuck.
+  // Its own script, before the game's, so an error in the game can't stop it.
+  addEventListener('keydown', (e) => {
+    if (!e.ctrlKey || !e.shiftKey || e.altKey || e.metaKey || e.key.toLowerCase() !== 'f') return;
+    const fb = document.getElementById('report');
+    if (!fb?.getAttribute('repo') || document.activeElement === fb) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    try { window.reportShortcut?.(); } catch {}   // the game pauses, if it still can
+    fb.open();
+  }, true);
+</script>
 <script type="module" src="js/main.js"></script>
 <script>
   const local = ['localhost', '127.0.0.1'].includes(location.hostname);
@@ -77,5 +97,8 @@
     navigator.serviceWorker.register('sw.js');
   }
 </script>
+<script type="module" src="vendor/gh-feedback.js"></script>
+<gh-feedback id="report" trigger="none" repo="zeveck/pomegranatepanic2" template="bug.yml"
+  types="bug,feature" theme="dark" color="#e9a93a" popup-color="#e9a93a"></gh-feedback>
 </body>
 </html>

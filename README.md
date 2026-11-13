@@ -60,6 +60,8 @@ fight.
 - **Combos:** let the pom fall a long way before catching it and it bounces
   for points. Chain bounces and bumpers for up to 10x.
 - **Pause:** Esc or P, or the pause button. **Mute:** M, or the music and sound buttons.
+- Found a bug? Pause and pick "Report a bug", or press Ctrl+Shift+F (you'll
+  need a GitHub account).
 - On a phone, play upright. You can install it from your browser's menu to
   play full screen, even offline.
 
@@ -93,7 +95,10 @@ director) pick it apart over two rounds, then generated the art and audio,
 built the game, and play-tested it on desktop and phone sizes. A test bot
 played dozens of runs and boss fights to make sure Hades can always be beaten,
 and a fresh playtester and bug hunter went over the result before it was
-called done. One follow-up request published it here.
+called done. One follow-up request published it here, and a later one added
+the "Report a bug" button:
+
+> /gamegen --feedback on --publish --no-confirm
 
 gamegen brings four plugins along. Here's what each one made.
 

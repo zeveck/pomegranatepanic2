@@ -67,7 +67,14 @@ Desktop:
 | Place ramp | left mouse **down** (as the original) | — |
 | Pause | on-screen pause button | Esc or P |
 | Mute music / sound | on-screen buttons | M (toggles both) |
-| Menus | click buttons | Enter / Space = primary button; type letters in initials entry, Backspace, Enter |
+| Menus | click buttons | Enter / Space = primary button; ↑/↓ pick a button on the title and pause menus, then Enter / Space; type letters in initials entry, Backspace, Enter |
+| Report a bug | "Report a bug" on the title and pause menus | Ctrl+Shift+F, from anywhere (pauses first) |
+
+The bug report shortcut keeps F: no game action uses F, and the game ignores
+every key pressed with Ctrl, so Ctrl+Shift+F can't type an initial or reach
+the game. (Every letter is a game key in initials entry, so no letter would
+avoid that; the Ctrl is what keeps it apart.) While the report form is open,
+the game ignores all keys and touches.
 
 Touch (portrait):
 
@@ -77,6 +84,7 @@ Touch (portrait):
 | Hold or drag (≥ 110 ms or ≥ 12 px) | ghost ramp eases (over 100 ms) to 70 logical px **above** the finger so the finger never hides it; ramp placed at the ghost on lift |
 | Pause / mute | bronze roundel buttons top-right, 72×72 logical (≥ 52 CSS px on a 390-wide phone) |
 | Initials | big ▲/▼ letter wheels and a ✓ button; typed letters also accepted |
+| Report a bug | "Report a bug" on the title and pause menus |
 
 There is no cancel gesture: every lift places a ramp (as the original).
 Multi-touch: only the first active pointer aims; others are ignored until it
