@@ -33,3 +33,4 @@
 - [x] 7 Final review — 1 must-fix (boss soft-lock) + 15 others, all fixed and re-tested
 - [x] 8 Wrap up — README, social card, Pages workflow, served on localhost
 - [x] Change (2026-11-13): "Report a bug" (feedback on) on the title and pause menus (mouse, touch, ↑/↓ + Enter), Ctrl+Shift+F shortcut, form themed purple and gold; play-tested at 1280×720, 800×600, iPhone 15 upright and sideways; boss runs (seeds 1–12) and full runs (seeds 11–20) replayed with 0 accidental opens, full runs identical to before the change; published
+- [x] Change (2026-11-14): Report a bug: updated to the fixed form (gh-feedback 2026.11.14)
